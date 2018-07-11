@@ -2,36 +2,26 @@ module NatSet
 
 open Pairing
 open System
+open System.Numerics
 
-type Cardinality = Finite of uint64 | Infinite
-
-let getMaxSize = function 
-    | Finite(n) -> n
-    | Infinite -> UInt64.MaxValue
+type Cardinality = Finite of BigInteger | Infinite
 
 [<Struct>]
 type LongBijection<'a> = 
-    | LongBijection of encode: ('a -> uint64) * decode: (uint64 -> 'a) * cardinality: Cardinality
+    | LongBijection of encode: ('a -> BigInteger) * decode: (BigInteger -> 'a) * cardinality: Cardinality
 
-let getSetSize = function LongBijection(_, _, c) -> getMaxSize c
-let enumerate = function LongBijection(_, _, c) -> getMaxSize c
 let fromInt (LongBijection(_, d, _)) x = d(x)
 let toInt (LongBijection(e, _, _)) x = e(x)
 
-type LongBijection<'a> with
-    member this.MaxIndex = (getSetSize this) - 1UL
-
 let fromList list = 
-    let length = uint64(List.length list)
+    let length = BigInteger(List.length list)
     let card = Finite(length)
-    let encode(x) = List.findIndex(fun item -> item = x) list |> uint64
+    let encode(x) = List.findIndex(fun item -> item = x) list |> BigInteger
     let decode(x) = List.item (int(x)) list
     LongBijection(encode, decode, card)
 
 let AllIntegers = LongBijection(id, id, Infinite)
 let Bounded(max) = LongBijection(id, id, Finite(max))
-
-open Pairing
 
 let rec combine = function
     | LongBijection(e1, d1, Finite(c1)), LongBijection(e2, d2, Finite(c2)) -> combineFinite(e1,d1,c1)(e2,d2,c2)
