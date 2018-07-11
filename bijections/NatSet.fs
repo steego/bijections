@@ -14,12 +14,12 @@ type LongBijection<'a> =
     | LongBijection of encode: ('a -> uint64) * decode: (uint64 -> 'a) * cardinality: Cardinality
 
 let getSetSize = function LongBijection(_, _, c) -> getMaxSize c
+let enumerate = function LongBijection(_, _, c) -> getMaxSize c
+let fromInt (LongBijection(_, d, _)) x = d(x)
+let toInt (LongBijection(e, _, _)) x = e(x)
 
 type LongBijection<'a> with
     member this.MaxIndex = (getSetSize this) - 1UL
-
-let AllIntegers = LongBijection(id, id, Infinite)
-let Bounded(max) = LongBijection(id, id, Finite(max))
 
 let fromList list = 
     let length = uint64(List.length list)
@@ -28,8 +28,8 @@ let fromList list =
     let decode(x) = List.item (int(x)) list
     LongBijection(encode, decode, card)
 
-let fromInt (LongBijection(_, d, _)) x = d(x)
-let toInt (LongBijection(e, _, _)) x = e(x)
+let AllIntegers = LongBijection(id, id, Infinite)
+let Bounded(max) = LongBijection(id, id, Finite(max))
 
 open Pairing
 
